@@ -17,3 +17,4 @@ alwaysApply: true
 - Do not install new runtime dependencies without flagging them explicitly. Dev dependencies (test tooling, build tooling) can be added freely.
 - Middleware order in src/app.ts is fixed: requestId -> helmet -> cors -> express.json -> pino-http -> routes -> notFoundHandler -> errorHandler (always last). Do not reorder without discussion.
 - Rate limiting uses the shared createRateLimiter factory (src/middleware/rateLimiter.ts) — do not implement ad-hoc limiting logic. Errors route through next(new RateLimitedError()), never a custom response body.
+- Login schema (loginSchema.ts) deliberately does not enforce username/password format rules — this is intentional for enumeration protection, not an oversight. Do not add complexity validation to login."
