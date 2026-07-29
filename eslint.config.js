@@ -8,11 +8,11 @@ module.exports = [
     ignores: ['dist/**', 'node_modules/**', 'coverage/**', '**/*.js'],
   },
   {
-    files: ['src/**/*.ts'],
+    files: ['src/**/*.ts', 'tests/**/*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
+        project: './tsconfig.eslint.json',
         tsconfigRootDir: __dirname,
         ecmaVersion: 2022,
         sourceType: 'module',
