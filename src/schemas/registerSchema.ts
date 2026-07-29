@@ -50,10 +50,7 @@ export const registerRequestSchema = z
 
 export type RegisterRequest = z.infer<typeof registerRequestSchema>;
 
-/**
- * Checks all password complexity rules and returns every failure message.
- * Returns an empty array when the password is acceptable.
- */
+// Collects every failing rule so the caller can report all violations at once.
 function collectPasswordFailures(password: string): string[] {
   const failures: string[] = [];
 
@@ -79,17 +76,9 @@ function collectPasswordFailures(password: string): string[] {
   return failures;
 }
 
-/**
- * Parses and validates a raw register request body.
- *
- * Throws ValidationError for structural problems: missing fields, wrong types,
- * invalid username format, or unexpected extra keys.
- *
- * Throws WeakPasswordError listing every failing rule when the password is weak,
- * so the client can fix all violations in one round-trip.
- *
- * Returns the validated, normalized body on success (username is lowercase).
- */
+// Throws ValidationError for structural problems (missing fields, bad username, extra keys).
+// Throws WeakPasswordError with all failing rules when the password is weak.
+// Returns the validated body with username normalized to lowercase on success.
 export function parseRegisterRequest(body: unknown): RegisterRequest {
   const result = registerRequestSchema.safeParse(body);
 

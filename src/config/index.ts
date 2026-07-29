@@ -20,10 +20,7 @@ const envSchema = z.object({
 
 export type Config = z.infer<typeof envSchema>;
 
-/**
- * Validates env and returns a typed config object.
- * On failure: logs which variables are invalid, then exits the process.
- */
+// Validates environment variables and exits immediately if anything is missing or invalid.
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const result = envSchema.safeParse({
     PORT: env.PORT,

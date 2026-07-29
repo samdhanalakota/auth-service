@@ -32,9 +32,7 @@ redisClient.on('close', () => {
   logger.warn('Lost connection to Redis.');
 });
 
-/**
- * Pings Redis for health checks. Returns false on failure; never throws.
- */
+// Returns false on any error rather than throwing, so health check callers always get a boolean.
 export async function checkRedisConnection(): Promise<boolean> {
   try {
     const result = await redisClient.ping();

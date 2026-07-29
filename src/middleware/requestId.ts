@@ -16,10 +16,7 @@ function readIncomingRequestId(req: Request): string | undefined {
   return undefined;
 }
 
-/**
- * Ensures every request has a correlation id on locals and the response header.
- * Reuses an incoming X-Request-Id when present.
- */
+// Reuses an incoming X-Request-Id when present, otherwise generates a new UUID.
 export function requestIdMiddleware(req: Request, res: Response, next: NextFunction): void {
   const requestId = readIncomingRequestId(req) ?? randomUUID();
   res.locals.requestId = requestId;

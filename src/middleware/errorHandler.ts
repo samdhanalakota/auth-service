@@ -23,10 +23,7 @@ function buildErrorBody(code: string, message: string, details?: string[]): Erro
   return body;
 }
 
-/**
- * Maps known operational errors to the SPEC error envelope.
- * Unexpected errors are logged and returned as a generic 500.
- */
+// Known AppErrors get their status code and error envelope. Anything else is logged and returned as 500.
 export const errorHandler: ErrorRequestHandler = (
   err: unknown,
   req: Request,
@@ -55,9 +52,6 @@ export const errorHandler: ErrorRequestHandler = (
   );
 };
 
-/**
- * Handles unmatched routes with the same error envelope shape.
- */
 export const notFoundHandler: RequestHandler = (_req: Request, res: Response): void => {
   res.status(404).json(
     buildErrorBody('NOT_FOUND', 'No matching route was found for this request.'),

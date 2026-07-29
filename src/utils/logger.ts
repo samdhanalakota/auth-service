@@ -4,10 +4,7 @@ import { config } from '../config';
 const SENSITIVE_KEY = /^(password|token|authorization|jwt_secret)$/i;
 const REDACTED = '[Redacted]';
 
-/**
- * Recursively redacts sensitive object keys (case-insensitive).
- * Exported for unit testing.
- */
+// Recursively replaces sensitive keys with "[Redacted]". Exported so tests can assert on it directly.
 export function redactSensitive(value: unknown, seen: WeakSet<object> = new WeakSet()): unknown {
   if (value === null || typeof value !== 'object') {
     return value;
@@ -35,10 +32,8 @@ export function redactSensitive(value: unknown, seen: WeakSet<object> = new Weak
   return output;
 }
 
-/**
- * Builds a pino logger. Optional destination is used by tests to capture output.
- * Non-production uses pino-pretty for readable console output (devDependency).
- */
+// Pass an optional destination stream to capture output in tests.
+// In non-production environments, pino-pretty is used for readable console output.
 export function createLogger(destination?: DestinationStream): Logger {
   const options: LoggerOptions = {
     level: config.LOG_LEVEL,

@@ -15,16 +15,9 @@ export interface RegisterResult {
   createdAt: string;
 }
 
-/**
- * Registers a new user.
- *
- * Hashes the password with Argon2id, then persists the user via the repository.
- * Returns only the public-safe fields — the hash never leaves this function.
- *
- * UsernameTakenError from createUser propagates to the caller as-is; it is
- * the controller's job to map that to an HTTP response.
- * Any unexpected argon2 failure also propagates and will surface as a 500.
- */
+// Hashes the password with Argon2id, then persists the user.
+// The hash never leaves this function — only username and createdAt are returned.
+// UsernameTakenError and argon2 failures propagate up to the controller unchanged.
 export async function registerUser(input: {
   username: string;
   password: string;

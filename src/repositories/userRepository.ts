@@ -11,12 +11,7 @@ function userKey(username: string): string {
   return `user:${username}`;
 }
 
-/**
- * Persists a new user atomically using SET NX.
- * The username is expected to be already normalized to lowercase by the caller.
- * Throws UsernameTakenError if the key already exists — no separate EXISTS check,
- * since that would reintroduce the race condition the NX flag prevents.
- */
+// Uses SET NX for atomic uniqueness — no separate EXISTS check, which would introduce a race condition.
 export async function createUser(
   username: string,
   passwordHash: string,
@@ -35,14 +30,7 @@ export async function createUser(
   return user;
 }
 
-/**
- * Looks up a user by username.
- * The username is expected to be already normalized to lowercase by the caller.
- * Returns null when no user exists with that username.
- * Returns null and logs an error if the stored value is not valid JSON — this
- * should never happen in normal operation, but we defend against it rather than
- * crashing the request.
- */
+// Returns null if the user does not exist. Logs and returns null on malformed JSON rather than crashing.
 export async function findUserByUsername(username: string): Promise<StoredUser | null> {
   const raw = await redisClient.get(userKey(username));
 
