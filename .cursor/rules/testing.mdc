@@ -13,3 +13,4 @@ alwaysApply: true
 - Do not mock process.exit by letting it actually exit the test process — always mock it to throw, so Jest can catch and assert on it. See tests/config/index.test.ts.
 - Test file location: mirror the src/ path under tests/, e.g. src/utils/logger.ts -> tests/utils/logger.test.ts.
 - Do not chase 100% coverage. Cover the documented edge cases in docs/SPEC.md and the plan's Phase 7 list; do not add exhaustive permutation tests beyond that.
+- When testing env-dependent modules, use empty string not delete to unset a var, to avoid dotenv repopulating it from a real .env file.
