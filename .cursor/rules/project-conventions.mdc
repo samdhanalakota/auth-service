@@ -1,0 +1,12 @@
+---
+description: Core conventions for the auth-service project
+alwaysApply: true
+---
+
+- Follow docs/SPEC.md exactly for API contract, status codes, and error codes. Do not add endpoints or fields not listed there.
+- Use Zod for all request validation — no manual validation logic.
+- No `any` types without an explicit eslint-disable comment explaining why.
+- All errors thrown in services/controllers must be instances of the AppError hierarchy in src/utils/errors.ts.
+- Never read process.env directly — always import the typed `config` object from src/config.
+- Never log sensitive fields directly — use the `logger` export from src/utils/logger.ts, which redacts automatically.
+- Follow Conventional Commits (feat:, fix:, docs:, chore:, test:) for any commit message suggestions.

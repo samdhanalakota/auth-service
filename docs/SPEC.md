@@ -1,7 +1,8 @@
 # Auth API — Spec
 
-**Base path:** `/api/v1`
-**Response style:** Stripe/GitHub-style — success responses return the resource directly; only errors use a structured envelope. HTTP status code is the primary success/failure signal.
+Base path: `/api/v1`.
+
+Success responses return the resource directly (Stripe/GitHub style). Errors use a structured envelope. The HTTP status code is the main success or failure signal.
 
 ---
 
@@ -10,6 +11,7 @@
 `POST /api/v1/register`
 
 ### Request
+
 ```json
 {
   "username": "string",
@@ -18,26 +20,36 @@
 ```
 
 ### Success — 201 Created
+
 ```json
 {
   "username": "string",
   "createdAt": "ISO8601 timestamp"
 }
 ```
-No password/hash ever returned. No token issued on register — client must call `/login` separately.
+
+Never return the password or hash. Do not issue a token on register — the client must call `/login` separately.
 
 ### Errors
+
 | Case | Status | Code |
 |---|---|---|
-| Missing/invalid fields | 400 | `VALIDATION_ERROR` |
-| Password fails complexity | 400 | `WEAK_PASSWORD` |
+| Missing or invalid fields | 400 | `VALIDATION_ERROR` |
+| Password fails complexity checks | 400 | `WEAK_PASSWORD` |
 | Username already exists | 409 | `USERNAME_TAKEN` |
 | Rate limit exceeded | 429 | `RATE_LIMITED` |
 | Unexpected failure | 500 | `INTERNAL_ERROR` |
 
 Error body shape:
+
 ```json
-{ "error": { "code": "STRING_CODE", "message": "human readable", "details": [ "optional array" ] } }
+{
+  "error": {
+    "code": "STRING_CODE",
+    "message": "human readable",
+    "details": ["optional array"]
+  }
+}
 ```
 
 ---
@@ -47,6 +59,7 @@ Error body shape:
 `POST /api/v1/login`
 
 ### Request
+
 ```json
 {
   "username": "string",
@@ -55,6 +68,7 @@ Error body shape:
 ```
 
 ### Success — 200 OK
+
 ```json
 {
   "token": "jwt-string",
@@ -63,10 +77,11 @@ Error body shape:
 ```
 
 ### Errors
+
 | Case | Status | Code |
 |---|---|---|
-| Invalid credentials (wrong password OR unknown username — identical response, intentional, prevents enumeration) | 401 | `INVALID_CREDENTIALS` |
-| Missing/invalid fields | 400 | `VALIDATION_ERROR` |
+| Invalid credentials (wrong password or unknown username — same response on purpose, to avoid username enumeration) | 401 | `INVALID_CREDENTIALS` |
+| Missing or invalid fields | 400 | `VALIDATION_ERROR` |
 | Rate limit exceeded | 429 | `RATE_LIMITED` |
 | Unexpected failure | 500 | `INTERNAL_ERROR` |
 
@@ -75,48 +90,55 @@ Error body shape:
 ## Endpoint 3 — Health
 
 `GET /health` → `200 OK`
+
 ```json
-{ "status": "ok", "redis": "connected" }
+{
+  "status": "ok",
+  "redis": "connected"
+}
 ```
 
 ---
 
 ## Cross-cutting
 
-- Every response includes `X-Request-Id` header (correlation ID, UUID per request)
-- 429 responses include `RateLimit-*` and `Retry-After` headers
-- All request bodies validated via Zod; unexpected fields rejected
-- `expiresIn` follows OAuth2 convention (RFC 6749) — seconds until token expiry
+- Every response includes an `X-Request-Id` header (a UUID correlation id for that request).
+- `429` responses include `RateLimit-*` and `Retry-After` headers.
+- Validate all request bodies with Zod, and reject unexpected fields.
+- `expiresIn` follows the OAuth2 convention (RFC 6749): seconds until the token expires.
 
 ---
 
-## Redis Key Design (final)
+## Redis key design
 
-- `user:{username}` → String, JSON-encoded value: `{ "passwordHash": "...", "createdAt": "ISO8601" }`
-- Write: `SET user:{username} <json> NX` — atomic create-if-absent, prevents race condition on duplicate registration (returns null if key already exists = username taken)
-- Read: `GET user:{username}`
-- Rate limit counters: `ratelimit:login:ip:{ip}`, `ratelimit:login:user:{username}`, `ratelimit:register:ip:{ip}` — TTL-based windows via `rate-limit-redis`
+- `user:{username}` — string value, JSON-encoded: `{ "passwordHash": "...", "createdAt": "ISO8601" }`
+- Write with `SET user:{username} <json> NX` so create-if-absent is atomic and duplicate registration cannot race. A null reply means the key already exists (username taken).
+- Read with `GET user:{username}`.
+- Rate limit counters use TTL windows via `rate-limit-redis`:
+  - `ratelimit:login:ip:{ip}`
+  - `ratelimit:login:user:{username}`
+  - `ratelimit:register:ip:{ip}`
 
 ---
 
-## Username Format Policy
+## Username format
 
-- Length: 3–30 characters
-- Allowed characters: letters, digits, underscore, hyphen, period
-- Must start with a letter or digit
-- Normalized to lowercase before storage/lookup (case-insensitive uniqueness)
-- No whitespace (rejected, not silently trimmed)
-- Explicitly rejected: `:`, `/`, `\`, `@`, spaces, non-ASCII — `:`/`/` specifically excluded because they are Redis key-delimiter characters and the key pattern is `user:{username}`
+- Length: 3–30 characters.
+- Allowed characters: letters, digits, underscore, hyphen, and period.
+- Must start with a letter or digit.
+- Normalize to lowercase before storage and lookup (uniqueness is case-insensitive).
+- Reject whitespace; do not silently trim it.
+- Explicitly reject `:`, `/`, `\`, `@`, spaces, and non-ASCII. Ban `:` and `/` in particular because they act as Redis key delimiters and the key pattern is `user:{username}`.
 
-## Password Complexity Policy
+## Password complexity
 
-- Minimum 12 characters
-- At least 1 uppercase, 1 lowercase, 1 digit, 1 special character
-- Rejected against a small common-password blocklist
-- Validation errors return which specific rule(s) failed in `details`
+- Minimum 12 characters.
+- At least one uppercase letter, one lowercase letter, one digit, and one special character.
+- Reject passwords that appear on a small common-password blocklist.
+- When validation fails, put the specific failed rule(s) in `details`.
 
-## JWT Policy
+## JWT policy
 
-- Algorithm pinned explicitly: `HS256` (no `alg: none` acceptance)
-- Short-lived access token only (default 900s / 15 min) — no refresh token in this scope
-- Secret loaded from env, minimum length enforced at boot (fail-fast if missing/weak)
+- Pin the algorithm to `HS256` explicitly. Do not accept `alg: none`.
+- Issue a short-lived access token only (default 900 seconds / 15 minutes). No refresh token in this scope.
+- Load the secret from the environment and enforce a minimum length at boot. Fail fast if it is missing or too weak.

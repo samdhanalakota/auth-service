@@ -1,0 +1,15 @@
+---
+description: Testing conventions for auth-service
+alwaysApply: true
+---
+
+- Use Jest + ts-jest. Use @jest/globals imports (describe, it, expect, jest, beforeEach, afterEach, afterAll) rather than relying on ambient globals.
+- Use supertest for integration tests against Express routes; unit tests should mock dependencies rather than hitting real Redis.
+- Use ioredis-mock for any test that touches Redis — never connect to a real Redis instance in tests.
+- Modules that read config at import time (e.g. anything importing src/config) must be tested with jest.isolateModules + a fresh require, so each test can control the environment cleanly. See tests/config/index.test.ts for the reference pattern.
+- Functions/classes that need to capture output for assertions (e.g. the logger) should accept an injectable destination/dependency via an optional parameter, rather than requiring global mocking. See src/utils/logger.ts's createLogger(destination?) for the reference pattern.
+- Never assert only that a function "was called" when the actual behavior (e.g. redaction, status code, response body) can be asserted directly. Prefer asserting real output over mock call counts alone.
+- Every new error type added to src/utils/errors.ts must have a corresponding case in the errorHandler test suite (status code + error code + body shape).
+- Do not mock process.exit by letting it actually exit the test process — always mock it to throw, so Jest can catch and assert on it. See tests/config/index.test.ts.
+- Test file location: mirror the src/ path under tests/, e.g. src/utils/logger.ts -> tests/utils/logger.test.ts.
+- Do not chase 100% coverage. Cover the documented edge cases in docs/SPEC.md and the plan's Phase 7 list; do not add exhaustive permutation tests beyond that.
