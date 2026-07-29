@@ -1,9 +1,7 @@
 import { z } from 'zod';
 import { ValidationError } from '../utils/errors';
 
-// Login validation is intentionally minimal. Format and complexity rules belong
-// at registration only — applying them here would leak whether a username looks
-// valid vs. whether credentials are wrong, which weakens enumeration protection.
+// Login validation
 export const loginRequestSchema = z
   .object({
     username: z

@@ -4,11 +4,7 @@ import { findUserByUsername } from '../repositories/userRepository';
 import { config } from '../config';
 import { InvalidCredentialsError } from '../utils/errors';
 
-// A real Argon2id hash of a fixed string, computed once at module load.
-// We verify against this when no user is found so that the response time for
-// a missing username is indistinguishable from the time for a wrong password.
-// Without this, an attacker can detect which usernames exist by measuring
-// how quickly the server responds.
+// Dummy hash for login response time matching
 export const DUMMY_HASH =
   '$argon2id$v=19$m=19456,p=1,t=2$wERR3jQICYKZXCa/j9OyTg$RGyJANMXvh48wOYLFLbJmvZkeZkzj+QiLQBgx0Qt4hQ';
 
