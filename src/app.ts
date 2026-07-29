@@ -6,6 +6,7 @@ import pinoHttp from 'pino-http';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { requestIdMiddleware } from './middleware/requestId';
 import { healthRouter } from './routes/health';
+import { loginRouter } from './routes/loginRoute';
 import { registerRouter } from './routes/registerRoute';
 import { logger } from './utils/logger';
 
@@ -43,7 +44,8 @@ export function createApp(): Application {
   // Registration endpoint.
   app.use('/api/v1/register', registerRouter);
 
-  // TODO: mount /api/v1/login route here (Phase 5).
+  // Login endpoint.
+  app.use('/api/v1/login', loginRouter);
 
   // 404 fallback — must come after all real routes.
   app.use(notFoundHandler);
