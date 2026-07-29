@@ -33,7 +33,11 @@ describe('config', () => {
     }
     for (const [key, value] of Object.entries(overrides)) {
       if (value === undefined) {
-        delete process.env[key];
+        // Set to empty string rather than deleting the key. dotenv uses
+        // override:false, so it only fills in absent keys. An empty string
+        // is present, so dotenv won't repopulate it from the .env file,
+        // and Zod's min(32) check fires as intended.
+        process.env[key] = '';
       } else {
         process.env[key] = value;
       }

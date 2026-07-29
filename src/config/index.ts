@@ -1,7 +1,9 @@
 import { config as loadEnv } from 'dotenv';
 import { z } from 'zod';
 
-loadEnv({ quiet: true });
+// override: false ensures dotenv never clobbers env vars already set in the
+// process (e.g. by tests or by a real deployment environment).
+loadEnv({ quiet: true, override: false });
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().max(65535).default(3000),

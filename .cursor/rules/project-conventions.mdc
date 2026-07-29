@@ -15,3 +15,4 @@ alwaysApply: true
 - `res.locals.requestId` is the canonical source of the correlation id inside request handlers and middleware — do not re-read the header.
 - Every new error subclass added to src/utils/errors.ts must be added to the errorHandler test suite on the same commit. See .cursor/rules/testing.mdc.
 - Do not install new runtime dependencies without flagging them explicitly. Dev dependencies (test tooling, build tooling) can be added freely.
+- Middleware order in src/app.ts is fixed: requestId -> helmet -> cors -> express.json -> pino-http -> routes -> notFoundHandler -> errorHandler (always last). Do not reorder without discussion.
