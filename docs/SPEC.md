@@ -90,13 +90,23 @@ Error body shape:
 
 ---
 
-## Redis Key Design (draft — to be confirmed next)
+## Redis Key Design (final)
 
-- `user:{username}` → hash: `{ passwordHash, createdAt }`
-- Uniqueness + atomic write enforced via `SET user:{username} ... NX`
+- `user:{username}` → String, JSON-encoded value: `{ "passwordHash": "...", "createdAt": "ISO8601" }`
+- Write: `SET user:{username} <json> NX` — atomic create-if-absent, prevents race condition on duplicate registration (returns null if key already exists = username taken)
+- Read: `GET user:{username}`
 - Rate limit counters: `ratelimit:login:ip:{ip}`, `ratelimit:login:user:{username}`, `ratelimit:register:ip:{ip}` — TTL-based windows via `rate-limit-redis`
 
 ---
+
+## Username Format Policy
+
+- Length: 3–30 characters
+- Allowed characters: letters, digits, underscore, hyphen, period
+- Must start with a letter or digit
+- Normalized to lowercase before storage/lookup (case-insensitive uniqueness)
+- No whitespace (rejected, not silently trimmed)
+- Explicitly rejected: `:`, `/`, `\`, `@`, spaces, non-ASCII — `:`/`/` specifically excluded because they are Redis key-delimiter characters and the key pattern is `user:{username}`
 
 ## Password Complexity Policy
 
